@@ -35,8 +35,8 @@ const modulePermissions: Partial<Record<ModuleName, { create: string; edit: stri
 
 const configs: Record<ModuleName, ModuleConfig> = {
   buildings: { title: 'module.buildings', help: 'module.buildingsHelp', table: 'buildings', select: 'id,code,name,address,floors,is_active', columns: [['code','field.code','text'],['name','field.name','text'],['address','field.address','text'],['floors','field.floors','text'],['is_active','common.status','status']], fields: [{name:'code',label:'field.code',type:'text',required:true},{name:'name',label:'field.name',type:'text',required:true},{name:'address',label:'field.address',type:'text'},{name:'floors',label:'field.floors',type:'number',required:true}] },
-  rooms: { title: 'module.rooms', help: 'module.roomsHelp', table: 'rooms', select: 'id,room_number,building_id,floor,monthly_rent,default_deposit,status,contracts(id,start_date,payment_due_day,status,tenants(full_name_lo,full_name_en),invoices(balance,status,due_date))', columns: [['room_number','field.roomNumber','text'],['monthly_rent','field.monthlyRent','money'],['status','common.status','status']], fields: [{name:'room_number',label:'field.roomNumber',type:'text',required:true},{name:'building_id',label:'field.building',type:'select',required:true,optionSource:'buildings'},{name:'floor',label:'field.floor',type:'number',required:true},{name:'monthly_rent',label:'field.monthlyRent',type:'number',required:true},{name:'default_deposit',label:'field.deposit',type:'number',required:true},{name:'status',label:'common.status',type:'select',required:true,options:['available','reserved','maintenance','disabled']}] },
-  tenants: { title: 'module.tenants', help: 'module.tenantsHelp', table: 'tenants', select: 'id,tenant_code,full_name_lo,full_name_en,phone,email,identity_number,is_active', columns: [['tenant_code','field.tenantCode','text'],['full_name_lo','field.fullNameLo','text'],['phone','field.phone','text'],['email','field.email','text'],['is_active','common.status','status']], fields: [{name:'tenant_code',label:'field.tenantCode',type:'text',required:true},{name:'full_name_lo',label:'field.fullNameLo',type:'text',required:true},{name:'full_name_en',label:'field.fullNameEn',type:'text'},{name:'phone',label:'field.phone',type:'text',required:true},{name:'email',label:'field.email',type:'email'},{name:'identity_number',label:'field.identity',type:'text'}] },
+  rooms: { title: 'module.rooms', help: 'module.roomsHelp', table: 'rooms', select: 'id,room_number,building_id,floor,monthly_rent,default_deposit,status,contracts(id,start_date,payment_due_day,status,tenants(full_name_lo,full_name_en),invoices(balance,status,due_date,invoice_items(item_type,description,amount)))', columns: [['room_number','field.roomNumber','text'],['monthly_rent','field.monthlyRent','money'],['status','common.status','status']], fields: [{name:'room_number',label:'field.roomNumber',type:'text',required:true},{name:'building_id',label:'field.building',type:'select',required:true,optionSource:'buildings'},{name:'floor',label:'field.floor',type:'number',required:true},{name:'monthly_rent',label:'field.monthlyRent',type:'number',required:true},{name:'default_deposit',label:'field.deposit',type:'number',required:true},{name:'status',label:'common.status',type:'select',required:true,options:['available','reserved','maintenance','disabled']}] },
+  tenants: { title: 'module.tenants', help: 'module.tenantsHelp', table: 'tenants', select: 'id,full_name_lo,phone,identity_number,is_active', columns: [['full_name_lo','field.fullNameLo','text'],['phone','field.phone','text'],['identity_number','field.identity','text'],['is_active','common.status','status']], fields: [{name:'full_name_lo',label:'field.fullNameLo',type:'text',required:true},{name:'phone',label:'field.phone',type:'text',required:true},{name:'identity_number',label:'field.identity',type:'text'}] },
   contracts: { title: 'module.contracts', help: 'module.contractsHelp', table: 'contracts', select: 'id,contract_no,tenant_id,room_id,start_date,end_date,monthly_rent,deposit_amount,payment_due_day,electricity_rate,water_rate,status', columns: [['contract_no','field.contractNo','text'],['tenant_id','field.tenant','text'],['room_id','field.room','text'],['start_date','field.startDate','date'],['end_date','field.endDate','date'],['status','common.status','status']], fields: [{name:'contract_no',label:'field.contractNo',type:'text',required:true},{name:'tenant_id',label:'field.tenant',type:'select',required:true,optionSource:'tenants'},{name:'room_id',label:'field.room',type:'select',required:true,optionSource:'rooms'},{name:'start_date',label:'field.startDate',type:'date',required:true},{name:'end_date',label:'field.endDate',type:'date',required:true},{name:'monthly_rent',label:'field.monthlyRent',type:'number',required:true},{name:'deposit_amount',label:'field.deposit',type:'number',required:true},{name:'payment_due_day',label:'field.dueDay',type:'number',required:true},{name:'electricity_rate',label:'field.electricityRate',type:'number',required:true},{name:'water_rate',label:'field.waterRate',type:'number',required:true}] },
   utilities: { title: 'module.utilities', help: 'module.utilitiesHelp', table: 'meter_readings', select: 'id,room_id,meter_type,billing_month,previous_reading,current_reading,units_used,rate,amount', columns: [['room_id','field.room','text'],['meter_type','field.type','text'],['billing_month','field.billingMonth','date'],['previous_reading','field.previousReading','text'],['current_reading','field.currentReading','text'],['units_used','field.units','text'],['amount','common.amount','money']], fields: [{name:'room_id',label:'field.room',type:'select',required:true,optionSource:'rooms'},{name:'meter_type',label:'field.type',type:'select',required:true,options:['electricity','water']},{name:'billing_month',label:'field.billingMonth',type:'month',required:true},{name:'reading_date',label:'common.date',type:'date',required:true},{name:'previous_reading',label:'field.previousReading',type:'number',required:true},{name:'current_reading',label:'field.currentReading',type:'number',required:true},{name:'rate',label:'common.amount',type:'number',required:true}] },
   invoices: { title: 'module.invoices', help: 'module.invoicesHelp', table: 'invoices', select: 'id,invoice_no,billing_month,room_id,tenant_id,due_date,total,paid,balance,status', columns: [['invoice_no','field.invoiceNo','text'],['room_id','field.room','text'],['billing_month','field.billingMonth','date'],['due_date','field.dueDate','date'],['total','field.total','money'],['paid','field.paid','money'],['balance','field.balance','money'],['status','common.status','status']], fields: [], readOnly: true },
@@ -207,13 +207,12 @@ export function ModulePage({ module }: { module: ModuleName }) {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Horizon Workspace</p>
-          <h1 className="mt-1 text-xl font-bold tracking-tight text-foreground sm:text-2xl md:text-3xl">{t(config.title)}</h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t(config.help)}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl md:text-3xl">{t(config.title)}</h1>
+          {t(config.help) && <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t(config.help)}</p>}
         </div>
-        <div className="flex gap-2">
+        <div className="flex shrink-0 gap-2">
           {module === 'reports' && <Button className="rounded-xl" variant="outline" onClick={exportCsv}><FileDown />CSV</Button>}
           {!config.readOnly && access.create && (!config.singleton || rows.length === 0) && <Button className="rounded-xl" onClick={() => void openForm(null)}><Plus />{t('common.add')}</Button>}
         </div>
@@ -355,7 +354,7 @@ interface RoomContractView {
   payment_due_day: number;
   status: string;
   tenants: { full_name_lo?: string; full_name_en?: string } | { full_name_lo?: string; full_name_en?: string }[] | null;
-  invoices: { balance?: number; status?: string; due_date?: string }[] | null;
+  invoices: { balance?: number; status?: string; due_date?: string; invoice_items?: { item_type?: string; description?: string; amount?: number }[] | null }[] | null;
 }
 
 function RoomMobileCard({ row, language, t, canEdit, onEdit, onToggle, onNavigate }: { row: Row; language: 'lo' | 'en'; t: (key: TranslationKey) => string; canEdit: boolean; onEdit: () => void; onToggle: () => void; onNavigate: (path: string) => void }) {
@@ -364,19 +363,58 @@ function RoomMobileCard({ row, language, t, canEdit, onEdit, onToggle, onNavigat
   const tenantRecord = Array.isArray(contract?.tenants) ? contract?.tenants[0] : contract?.tenants;
   const tenantName = language === 'en' ? tenantRecord?.full_name_en || tenantRecord?.full_name_lo : tenantRecord?.full_name_lo || tenantRecord?.full_name_en;
   const invoices = contract?.invoices ?? [];
-  const outstanding = invoices.filter((invoice) => invoice.status !== 'paid' && invoice.status !== 'cancelled' && invoice.status !== 'draft').reduce((sum, invoice) => sum + Number(invoice.balance ?? 0), 0);
+  const payableInvoices = invoices.filter((invoice) => invoice.status !== 'paid' && invoice.status !== 'cancelled' && invoice.status !== 'draft' && Number(invoice.balance ?? 0) > 0);
+  const outstanding = payableInvoices.reduce((sum, invoice) => sum + Number(invoice.balance ?? 0), 0);
+  const dueInvoice = [...payableInvoices].filter((invoice) => invoice.due_date).sort((left, right) => String(left.due_date).localeCompare(String(right.due_date)))[0];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = dueInvoice?.due_date ? new Date(`${dueInvoice.due_date}T00:00:00`) : contract ? nextPaymentDueDate(contract.payment_due_day, today) : null;
+  const overdueDays = due && due < today ? Math.floor((today.getTime() - due.getTime()) / 86_400_000) : 0;
+  const invoiceItems = payableInvoices.flatMap((invoice) => invoice.invoice_items ?? []);
+  const utilityAmount = (type: 'electricity' | 'water' | 'garbage') => invoiceItems.reduce((sum, item) => {
+    const description = String(item.description ?? '').toLocaleLowerCase();
+    const matches = type === 'garbage'
+      ? (item.item_type === 'service' || item.item_type === 'other') && /garbage|trash|waste|ຂີ້ເຫຍື້ອ/.test(description)
+      : item.item_type === type;
+    return matches ? sum + Number(item.amount ?? 0) : sum;
+  }, 0);
+  const electricity = utilityAmount('electricity');
+  const water = utilityAmount('water');
+  const garbage = utilityAmount('garbage');
   const roomId = encodeURIComponent(displayValue(row.id));
   const status = displayValue(row.status);
-  return <article className="relative flex min-h-52 flex-col rounded-2xl border border-border/70 bg-card p-3 shadow-sm">
+  const moneyClass = (amount: number) => overdueDays > 0 && amount > 0 ? 'font-bold text-destructive' : 'font-semibold text-foreground';
+  return <article className={`relative flex min-h-72 flex-col rounded-2xl border bg-card p-3 shadow-sm ${overdueDays > 0 ? 'border-destructive/60 ring-1 ring-destructive/15' : 'border-border/70'}`}>
     <div className="flex items-start justify-between gap-1"><div><p className="text-xl font-bold leading-none text-foreground">{displayValue(row.room_number)}</p><div className="mt-2">{renderCell(row.status, 'status', language, t, 'status', {})}</div></div>{canEdit && <div className="flex"><Button variant="ghost" size="icon" className="size-9 rounded-lg" onClick={onEdit} aria-label={t('common.edit')}><Pencil className="size-4" /></Button><Button variant="ghost" size="icon" className="size-9 rounded-lg text-muted-foreground" onClick={onToggle} aria-label={t('common.deactivate')}><Power className="size-4" /></Button></div>}</div>
-    <div className="mt-3 space-y-1.5 text-[11px]"><div className="flex items-center justify-between gap-1"><span className="text-muted-foreground">{t('field.monthlyRent')}</span><span className="font-bold tabular-nums text-foreground">{formatMoney(Number(row.monthly_rent ?? 0), language)}</span></div><div className="flex items-center justify-between gap-1"><span className="text-muted-foreground">{t('room.tenant')}</span><span className="max-w-20 truncate font-semibold text-foreground">{tenantName ?? t('room.noTenant')}</span></div>{contract && <><div className="flex items-center justify-between gap-1"><span className="flex items-center gap-1 text-muted-foreground"><CalendarDays className="size-3" />{t('room.checkInDate')}</span><span className="font-medium text-foreground">{formatDate(contract.start_date)}</span></div><div className="flex items-center justify-between gap-1"><span className="text-muted-foreground">{t('room.paymentDue')}</span><span className="font-medium text-foreground">{contract.payment_due_day}</span></div></>}{outstanding > 0 && <div className="flex items-center justify-between gap-1 text-destructive"><span>{t('room.outstanding')}</span><span className="font-bold tabular-nums">{formatMoney(outstanding, language)}</span></div>}</div>
+    <div className="mt-3 space-y-1.5 text-[11px]">
+      <RoomCardLine label={t('room.tenant')} value={tenantName ?? t('room.noTenant')} />
+      <RoomCardLine label={t('room.checkInDate')} value={contract ? formatDate(contract.start_date) : '—'} icon />
+      <div className="flex items-start justify-between gap-1"><span className="text-muted-foreground">{t('room.rentDueDate')}</span><div className="text-right"><p className={overdueDays > 0 ? 'font-bold text-destructive' : 'font-medium text-foreground'}>{due ? formatDate(due) : '—'}</p>{overdueDays > 0 && <p className="mt-0.5 rounded-full bg-destructive/10 px-1.5 py-0.5 text-[10px] font-bold text-destructive">{t('room.overdueDays').replace('{days}', String(overdueDays))}</p>}</div></div>
+      <RoomCardLine label={t('room.electricity')} value={electricity > 0 ? formatMoney(electricity, language) : '—'} valueClass={moneyClass(electricity)} />
+      <RoomCardLine label={t('room.water')} value={water > 0 ? formatMoney(water, language) : '—'} valueClass={moneyClass(water)} />
+      <RoomCardLine label={t('room.garbage')} value={garbage > 0 ? formatMoney(garbage, language) : '—'} valueClass={moneyClass(garbage)} />
+      {outstanding > 0 && <RoomCardLine label={t('room.outstanding')} value={formatMoney(outstanding, language)} valueClass="font-bold text-destructive" />}
+    </div>
     <div className="mt-auto grid gap-1.5 pt-3">{status === 'occupied' ? <Button type="button" className="min-h-11 rounded-xl px-2 text-[11px]" onClick={() => onNavigate(`/payments?room=${roomId}`)}><Banknote className="size-4" />{t('room.receivePayment')}</Button> : (status === 'available' || status === 'reserved') ? <><Button type="button" className="min-h-11 rounded-xl px-2 text-[11px]" onClick={() => onNavigate(`/tenants?room=${roomId}&mode=checkin`)}><UserPlus className="size-4" />{t('room.addTenant')}</Button>{status === 'available' && <Button type="button" variant="outline" className="min-h-11 rounded-xl px-2 text-[11px]" onClick={() => onNavigate(`/contracts?room=${roomId}&mode=reserve`)}><Bookmark className="size-4" />{t('room.reserve')}</Button>}</> : null}</div>
   </article>;
+}
+
+function RoomCardLine({ label, value, valueClass = 'font-semibold text-foreground', icon = false }: { label: string; value: string; valueClass?: string; icon?: boolean }) {
+  return <div className="flex items-center justify-between gap-1"><span className="flex items-center gap-1 text-muted-foreground">{icon && <CalendarDays className="size-3" />}{label}</span><span className={`max-w-24 truncate text-right tabular-nums ${valueClass}`}>{value}</span></div>;
+}
+
+function nextPaymentDueDate(paymentDueDay: number, today: Date) {
+  const safeDay = Math.min(28, Math.max(1, Number(paymentDueDay) || 1));
+  const due = new Date(today.getFullYear(), today.getMonth(), safeDay);
+  if (due < today) due.setMonth(due.getMonth() + 1);
+  return due;
 }
 
 function RecordDialog({ open, onOpenChange, module, config, options, editing, defaults, workflowMode, onSaved }: { open: boolean; onOpenChange: (open: boolean) => void; module: ModuleName; config: ModuleConfig; options: Record<string, {value:string;label:string}[]>; editing: Row | null; defaults: Row; workflowMode: 'checkin' | 'reserve' | null; onSaved: (savedId?: string | null) => Promise<void> }) {
   const { t } = useI18n();
   const { dark } = useTheme();
+  const [tenantFiles, setTenantFiles] = useState<File[]>([]);
+  const [existingDocuments, setExistingDocuments] = useState<{ id: string; original_name: string }[]>([]);
   const shape = Object.fromEntries(config.fields.map((field) => {
     const base = field.required ? z.string().min(1, t('common.required')) : z.string();
     if (field.type === 'email') return [field.name, base.refine((value) => !value || z.email().safeParse(value).success, t('common.invalidEmail'))];
@@ -395,13 +433,25 @@ function RecordDialog({ open, onOpenChange, module, config, options, editing, de
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({ resolver: zodResolver(schema) as Resolver<FormValues> });
   useEffect(() => {
     if (!open) return;
+    let active = true;
     const values = Object.fromEntries(config.fields.map((field) => {
       const raw = editing?.[field.name] ?? defaults[field.name];
       const value = field.type === 'month' && typeof raw === 'string' ? raw.slice(0, 7) : raw == null ? '' : displayValue(raw);
       return [field.name, value];
     }));
     reset(values);
-  }, [config.fields, defaults, editing, open, reset]);
+    const loadTenantDocuments = async () => {
+      await Promise.resolve();
+      if (!active) return;
+      setTenantFiles([]);
+      setExistingDocuments([]);
+      if (module !== 'tenants' || typeof editing?.id !== 'string' || !supabase) return;
+      const { data } = await supabase.from('tenant_documents').select('id,original_name').eq('tenant_id', editing.id).order('created_at', { ascending: false });
+      if (active) setExistingDocuments((data ?? []) as { id: string; original_name: string }[]);
+    };
+    void loadTenantDocuments();
+    return () => { active = false; };
+  }, [config.fields, defaults, editing, module, open, reset]);
   const submit = handleSubmit(async (values) => {
     if (!supabase) { await Swal.fire({ icon:'warning', title:t('setup.title'), text:t('setup.description'), confirmButtonColor:'#4318ff', background:dark ? '#111c44' : '#ffffff', color:dark ? '#ffffff' : '#1b2559' }); return; }
     if (module === 'contracts' && values.end_date < values.start_date) {
@@ -414,6 +464,7 @@ function RecordDialog({ open, onOpenChange, module, config, options, editing, de
     }
     const payload: Record<string, unknown> = {};
     for (const field of config.fields) payload[field.name] = field.type === 'number' ? Number(values[field.name]) : field.type === 'month' ? `${values[field.name]}-01` : values[field.name] || null;
+    if (!editing && module === 'tenants') payload.tenant_code = `TN-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
     if (!editing && module === 'contracts') payload.status = 'draft';
     if (!editing && module === 'maintenance') { payload.status = 'open'; payload.cost = 0; }
     const { data: authData } = await supabase.auth.getUser();
@@ -444,9 +495,37 @@ function RecordDialog({ open, onOpenChange, module, config, options, editing, de
       const { error } = await supabase.rpc('activate_contract', { target_contract_id: createdId, initial_electricity: 0, initial_water: 0, condition_text: null, note_text: null });
       requestError = error;
     }
-    if (requestError) { await Swal.fire({ icon:'error', title:t('common.error'), text:requestError.message, confirmButtonColor:'#4318ff', background:dark ? '#111c44' : '#ffffff', color:dark ? '#ffffff' : '#1b2559' }); return; }
     const savedId = createdId ?? (typeof editing?.id === 'string' ? editing.id : null);
-    await Swal.fire({ icon:'success', title:t('common.saved'), timer:1200, showConfirmButton:false, background:dark ? '#111c44' : '#ffffff', color:dark ? '#ffffff' : '#1b2559' }); reset(); onOpenChange(false); await onSaved(savedId);
+    if (!requestError && module === 'tenants' && savedId && tenantFiles.length > 0) {
+      for (const file of tenantFiles) {
+        if (!['image/jpeg', 'image/png', 'application/pdf'].includes(file.type) || file.size < 1 || file.size > 10 * 1024 * 1024) {
+          requestError = { message: t('field.attachmentsHelp') };
+          break;
+        }
+        const safeName = file.name.normalize('NFKD').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'document';
+        const storagePath = `${savedId}/${crypto.randomUUID()}-${safeName}`;
+        const { error: uploadError } = await supabase.storage.from('tenant-documents').upload(storagePath, file, { contentType: file.type, upsert: false });
+        if (uploadError) {
+          requestError = uploadError;
+          break;
+        }
+        const { error: documentError } = await supabase.from('tenant_documents').insert({
+          tenant_id: savedId,
+          document_type: 'other',
+          storage_path: storagePath,
+          original_name: file.name,
+          mime_type: file.type,
+          file_size: file.size,
+          created_by: actorId ?? null,
+        });
+        if (documentError) {
+          requestError = documentError;
+          break;
+        }
+      }
+    }
+    if (requestError) { await Swal.fire({ icon:'error', title:t('common.error'), text:requestError.message, confirmButtonColor:'#4318ff', background:dark ? '#111c44' : '#ffffff', color:dark ? '#ffffff' : '#1b2559' }); return; }
+    await Swal.fire({ icon:'success', title:t('common.saved'), timer:1200, showConfirmButton:false, background:dark ? '#111c44' : '#ffffff', color:dark ? '#ffffff' : '#1b2559' }); reset(); setTenantFiles([]); onOpenChange(false); await onSaved(savedId);
   });
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -471,6 +550,15 @@ function RecordDialog({ open, onOpenChange, module, config, options, editing, de
               {errors[field.name] && <p className="text-xs text-destructive">{String(errors[field.name]?.message)}</p>}
             </div>
           ))}
+          {module === 'tenants' && <div className="space-y-2 sm:col-span-2">
+            <Label className="font-semibold text-foreground" htmlFor="tenant-attachments">{t('field.attachments')}</Label>
+            <Input id="tenant-attachments" type="file" multiple accept="image/jpeg,image/png,application/pdf" className="h-auto min-h-11 cursor-pointer py-2 file:mr-3 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:font-semibold file:text-primary" onChange={(event) => setTenantFiles(Array.from(event.target.files ?? []))} />
+            <p className="text-xs text-muted-foreground">{t('field.attachmentsHelp')}</p>
+            {(existingDocuments.length > 0 || tenantFiles.length > 0) && <div className="rounded-xl bg-muted/60 px-3 py-2 text-xs text-foreground">
+              {existingDocuments.map((document) => <p key={document.id} className="truncate">• {document.original_name}</p>)}
+              {tenantFiles.map((file) => <p key={`${file.name}-${file.lastModified}`} className="truncate font-semibold text-primary">+ {file.name}</p>)}
+            </div>}
+          </div>}
         </form>
         <DialogFooter className="-mx-5 -mb-5 rounded-b-2xl border-t border-border/70 bg-card/80 px-5 py-3 sm:-mx-6 sm:-mb-6 sm:rounded-b-2xl sm:px-6">
           <Button className="rounded-xl" variant="outline" type="button" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button>

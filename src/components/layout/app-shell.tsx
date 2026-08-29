@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Bell, Building2, ChevronLeft, CircleDollarSign, ClipboardList, FileBarChart, FileText, Gauge, LogOut, Menu, Moon, Search, Settings, ShieldCheck, Sun, Users, WalletCards, Wrench, X } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { useAuth } from '@/src/contexts/auth-context';
 import { useI18n } from '@/src/i18n/i18n-context';
 import { useTheme } from '@/src/contexts/theme-context';
 import { MobileNav } from '@/src/components/layout/mobile-nav';
+import { supabase } from '@/src/lib/supabase';
 
 const navigation = [
   ['nav.dashboard', Gauge, '/'], ['nav.rooms', Building2, '/rooms'], ['nav.tenants', Users, '/tenants'],
@@ -25,6 +26,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { dark, toggleTheme } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    if (!configured || !user || !supabase) {
+      return;
+    }
+    const client = supabase;
+    let active = true;
+    const loadNotifications = async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { count, error } = await client
+        .from('invoices')
+        .select('id', { count: 'exact', head: true })
+        .in('status', ['unpaid', 'partial', 'overdue'])
+        .lt('due_date', today);
+      if (active && !error) setNotificationCount(count ?? 0);
+    };
+    void loadNotifications();
+    const timer = window.setInterval(loadNotifications, 60_000);
+    window.addEventListener('focus', loadNotifications);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      window.removeEventListener('focus', loadNotifications);
+    };
+  }, [configured, user]);
   const sidebar = (mobile = false) => {
     const compact = collapsed && !mobile;
     return <>
@@ -57,7 +84,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="ml-auto flex items-center gap-1 sm:gap-1.5">
             <div className="hidden rounded-xl bg-[#F4F7FE] p-1 text-xs font-bold dark:bg-white/5 sm:flex"><button onClick={() => setLanguage('lo')} className={cn('rounded-lg px-2.5 py-1.5 transition', language === 'lo' ? 'bg-white text-primary shadow-sm dark:bg-white/10 dark:text-violet-300' : 'text-[#A3AED0]')}>{t('common.lao')}</button><button onClick={() => setLanguage('en')} className={cn('rounded-lg px-2.5 py-1.5 transition', language === 'en' ? 'bg-white text-primary shadow-sm dark:bg-white/10 dark:text-violet-300' : 'text-[#A3AED0]')}>{t('common.english')}</button></div>
             <Button variant="ghost" size="icon" onClick={toggleTheme} className="min-h-9 min-w-9 rounded-xl text-[#A3AED0] hover:text-primary sm:min-h-10 sm:min-w-10" aria-label={dark ? t('common.lightMode') : t('common.darkMode')}>{dark ? <Sun /> : <Moon />}</Button>
-            <Button variant="ghost" size="icon" className="relative min-h-9 min-w-9 rounded-xl text-[#A3AED0] hover:text-primary sm:min-h-10 sm:min-w-10" aria-label={t('header.notifications')}><Bell /><span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-[#FF5252] ring-2 ring-white dark:ring-[#111C44]" /></Button>
+            <Button variant="ghost" size="icon" className="relative min-h-9 min-w-9 rounded-xl text-[#A3AED0] hover:text-primary sm:min-h-10 sm:min-w-10" aria-label={`${t('header.notifications')}: ${notificationCount}`}><Bell />{notificationCount > 0 && <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-[#FF5252] px-1 text-[10px] font-extrabold leading-none text-white ring-2 ring-white dark:ring-[#111C44]">{notificationCount > 99 ? '99+' : notificationCount}</span>}</Button>
             <button type="button" onClick={async () => { if (configured) { await signOut(); await navigate('/login'); } }} className="ml-0.5 flex items-center gap-2 rounded-xl p-1 text-left transition hover:bg-[#F4F7FE] sm:ml-1 dark:hover:bg-white/5" title={t('header.logout')}><div className="grid size-8 place-items-center rounded-xl bg-primary text-xs font-bold text-white shadow-md sm:size-9">{profile?.fullName?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? 'A'}</div><div className="hidden leading-tight xl:block"><p className="max-w-32 truncate text-xs font-bold text-[#2B3674] dark:text-white">{profile?.fullName ?? user?.email ?? t('header.profileRole')}</p><p className="text-[11px] font-medium text-[#A3AED0]">{profile?.roleName ?? t('header.profileRole')}</p></div>{configured && <LogOut className="hidden size-4 text-[#A3AED0] xl:block" />}</button>
           </div>
         </div>
