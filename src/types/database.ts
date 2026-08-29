@@ -1,0 +1,14 @@
+export type RoomStatus = 'available' | 'occupied' | 'reserved' | 'maintenance' | 'disabled';
+export type ContractStatus = 'draft' | 'active' | 'expiring' | 'expired' | 'terminated';
+export type InvoiceStatus = 'draft' | 'unpaid' | 'partial' | 'paid' | 'overdue' | 'cancelled';
+export type PaymentMethod = 'cash' | 'bank_transfer' | 'qr' | 'other';
+
+export interface Building { id: string; code: string; name: string; address: string | null; floors: number; is_active: boolean; }
+export interface Room { id: string; room_number: string; building_id: string; floor: number; room_type_id: string | null; monthly_rent: number; default_deposit: number; electricity_meter_no: string | null; water_meter_no: string | null; status: RoomStatus; notes: string | null; buildings?: Pick<Building, 'name' | 'code'> | null; }
+export interface Tenant { id: string; tenant_code: string; full_name_lo: string; full_name_en: string | null; phone: string; whatsapp: string | null; email: string | null; identity_number: string | null; emergency_contact: string | null; emergency_phone: string | null; is_active: boolean; }
+export interface Contract { id: string; contract_no: string; tenant_id: string; room_id: string; start_date: string; end_date: string; monthly_rent: number; deposit_amount: number; payment_due_day: number; electricity_rate: number; water_rate: number; status: ContractStatus; tenants?: Pick<Tenant, 'full_name_lo' | 'full_name_en' | 'tenant_code'> | null; rooms?: Pick<Room, 'room_number'> | null; }
+export interface Invoice { id: string; invoice_no: string; billing_month: string; tenant_id: string; room_id: string; issue_date: string; due_date: string; total: number; paid: number; balance: number; status: InvoiceStatus; tenants?: Pick<Tenant, 'full_name_lo' | 'full_name_en'> | null; rooms?: Pick<Room, 'room_number'> | null; }
+export interface Payment { id: string; payment_no: string; receipt_no: string; amount: number; payment_date: string; payment_method: PaymentMethod; invoices?: Pick<Invoice, 'invoice_no'> | null; rooms?: Pick<Room, 'room_number'> | null; }
+export interface MeterReading { id: string; room_id: string; meter_type: 'electricity' | 'water'; billing_month: string; previous_reading: number; current_reading: number; units_used: number; rate: number; amount: number; rooms?: Pick<Room, 'room_number'> | null; }
+export interface MaintenanceRequest { id: string; ticket_no: string; room_id: string | null; issue: string; category: string; priority: 'low' | 'normal' | 'high' | 'urgent'; due_date: string | null; cost: number; status: 'open' | 'assigned' | 'in_progress' | 'completed' | 'cancelled'; rooms?: Pick<Room, 'room_number'> | null; }
+export interface Expense { id: string; expense_no: string; expense_date: string; description: string; amount: number; supplier: string | null; payment_method: PaymentMethod; }
