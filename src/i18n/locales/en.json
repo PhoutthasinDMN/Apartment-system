@@ -49,6 +49,8 @@
   "common.openMenu": "Open menu",
   "common.closeMenu": "Close menu",
   "common.collapse": "Collapse sidebar",
+  "common.lightMode": "Light mode",
+  "common.darkMode": "Dark mode",
   "common.add": "Add",
   "common.save": "Save",
   "common.cancel": "Cancel",

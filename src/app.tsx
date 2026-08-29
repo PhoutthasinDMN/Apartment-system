@@ -4,13 +4,14 @@ import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from '@/src/components/layout/app-shell';
 import { AuthProvider } from '@/src/contexts/auth-context';
 import { I18nProvider } from '@/src/i18n/i18n-context';
+import { ThemeProvider } from '@/src/contexts/theme-context';
 import { LoginPage } from '@/src/pages/auth/login-page';
 import { DashboardPage } from '@/src/pages/dashboard/dashboard-page';
 import { ModulePage } from '@/src/pages/modules/module-page';
 import { ProtectedRoute } from '@/src/routes/protected-route';
 
 export function App() {
-  return <I18nProvider><AuthProvider><HashRouter><Routes>
+  return <I18nProvider><ThemeProvider><AuthProvider><HashRouter><Routes>
     <Route path="/login" element={<LoginPage />} />
     <Route path="/*" element={<ProtectedRoute><AppShell><Routes>
       <Route path="/" element={<DashboardPage />} />
@@ -28,5 +29,5 @@ export function App() {
       <Route path="/users" element={<ModulePage module="users" />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes></AppShell></ProtectedRoute>} />
-  </Routes></HashRouter></AuthProvider></I18nProvider>;
+  </Routes></HashRouter></AuthProvider></ThemeProvider></I18nProvider>;
 }

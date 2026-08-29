@@ -49,6 +49,8 @@
   "common.openMenu": "ເປີດເມນູ",
   "common.closeMenu": "ປິດເມນູ",
   "common.collapse": "ຫຍໍ້ເມນູ",
+  "common.lightMode": "ໂໝດແຈ້ງ",
+  "common.darkMode": "ໂໝດມືດ",
   "common.add": "ເພີ່ມ",
   "common.save": "ບັນທຶກ",
   "common.cancel": "ຍົກເລີກ",
