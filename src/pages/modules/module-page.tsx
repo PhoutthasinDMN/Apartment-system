@@ -92,10 +92,10 @@ export function ModulePage({ module }: { module: ModuleName }) {
     const sources = [...new Set([...config.fields.map((field) => field.optionSource).filter((source): source is OptionSource => Boolean(source)), ...relationSources])];
     const next: Record<string, { value: string; label: string }[]> = {};
     await Promise.all(sources.map(async (source) => {
-      const maps = { buildings: ['buildings','id,code,name'], rooms: ['rooms','id,room_number'], tenants: ['tenants','id,tenant_code,full_name_lo,full_name_en'], contracts: ['contracts','id,contract_no'], invoices: ['invoices','id,invoice_no,balance,status,room_id'], categories: ['expense_categories','id,name_lo,name_en'] } as const;
+      const maps = { buildings: ['buildings','id,code,name'], rooms: ['rooms','id,room_number'], tenants: ['tenants','id,tenant_code,full_name_lo,full_name_en,is_active'], contracts: ['contracts','id,contract_no'], invoices: ['invoices','id,invoice_no,balance,status,room_id'], categories: ['expense_categories','id,name_lo,name_en'] } as const;
       const [table, select] = maps[source]; const tableName: string = table; const columns: string = select; const { data } = await client.from(tableName).select(columns).limit(500);
       next[source] = ((data ?? []) as unknown as Row[])
-        .filter((row) => source !== 'invoices' || ((row.status !== 'paid' && row.status !== 'cancelled' && row.status !== 'draft') && (!requestedRoomId || row.room_id === requestedRoomId)))
+        .filter((row) => (source !== 'tenants' || row.is_active !== false) && (source !== 'invoices' || ((row.status !== 'paid' && row.status !== 'cancelled' && row.status !== 'draft') && (!requestedRoomId || row.room_id === requestedRoomId))))
         .map((row) => ({ value: String(row.id), label: String(row.name ?? row.room_number ?? row.full_name_lo ?? row.contract_no ?? row.invoice_no ?? row.name_lo ?? row.code ?? row.id) }));
     }));
     setOptions(next);
@@ -395,7 +395,7 @@ function RoomMobileCard({ row, language, t, canEdit, onEdit, onToggle, onNavigat
       <RoomCardLine label={t('room.garbage')} value={garbage > 0 ? formatMoney(garbage, language) : '—'} valueClass={moneyClass(garbage)} />
       {outstanding > 0 && <RoomCardLine label={t('room.outstanding')} value={formatMoney(outstanding, language)} valueClass="font-bold text-destructive" />}
     </div>
-    <div className="mt-auto grid gap-1.5 pt-3">{status === 'occupied' ? <Button type="button" className="min-h-11 rounded-xl px-2 text-[11px]" onClick={() => onNavigate(`/payments?room=${roomId}`)}><Banknote className="size-4" />{t('room.receivePayment')}</Button> : (status === 'available' || status === 'reserved') ? <><Button type="button" className="min-h-11 rounded-xl px-2 text-[11px]" onClick={() => onNavigate(`/tenants?room=${roomId}&mode=checkin`)}><UserPlus className="size-4" />{t('room.addTenant')}</Button>{status === 'available' && <Button type="button" variant="outline" className="min-h-11 rounded-xl px-2 text-[11px]" onClick={() => onNavigate(`/contracts?room=${roomId}&mode=reserve`)}><Bookmark className="size-4" />{t('room.reserve')}</Button>}</> : null}</div>
+    <div className="mt-auto grid gap-1.5 pt-3">{status === 'occupied' ? <Button type="button" className="min-h-11 rounded-xl px-2 text-[11px]" onClick={() => onNavigate(`/payments?room=${roomId}`)}><Banknote className="size-4" />{t('room.receivePayment')}</Button> : (status === 'available' || status === 'reserved') ? <><Button type="button" className="min-h-11 rounded-xl px-2 text-[11px]" onClick={() => onNavigate(`/contracts?room=${roomId}&mode=checkin`)}><UserPlus className="size-4" />{t('room.addTenant')}</Button>{status === 'available' && <Button type="button" variant="outline" className="min-h-11 rounded-xl px-2 text-[11px]" onClick={() => onNavigate(`/contracts?room=${roomId}&mode=reserve`)}><Bookmark className="size-4" />{t('room.reserve')}</Button>}</> : null}</div>
   </article>;
 }
 
