@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FileDown, LoaderCircle, Plus, RefreshCw, Search } from 'lucide-react';
+import { ArrowUpDown, ChevronLeft, ChevronRight, FileDown, LoaderCircle, Pencil, Plus, Power, RefreshCw, Search } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { type Resolver, useForm } from 'react-hook-form';
 import Swal from 'sweetalert2';
@@ -19,15 +19,22 @@ import { formatDate, formatMoney } from '@/src/utils/format';
 
 export type ModuleName = 'buildings' | 'rooms' | 'tenants' | 'contracts' | 'utilities' | 'invoices' | 'payments' | 'maintenance' | 'expenses' | 'reports' | 'users' | 'settings';
 type FieldType = 'text' | 'number' | 'date' | 'month' | 'select' | 'email';
-interface FieldConfig { name: string; label: TranslationKey; type: FieldType; required?: boolean; optionSource?: 'buildings' | 'rooms' | 'tenants' | 'contracts' | 'invoices' | 'categories'; options?: readonly string[]; }
+type OptionSource = 'buildings' | 'rooms' | 'tenants' | 'contracts' | 'invoices' | 'categories';
+interface FieldConfig { name: string; label: TranslationKey; type: FieldType; required?: boolean; optionSource?: OptionSource; options?: readonly string[]; }
 interface ModuleConfig { title: TranslationKey; help: TranslationKey; table: string; select: string; columns: readonly [string, TranslationKey, 'text' | 'money' | 'date' | 'status'][]; fields: readonly FieldConfig[]; readOnly?: boolean; }
 type Row = Record<string, unknown>;
 type FormValues = Record<string, string>;
 
+const modulePermissions: Partial<Record<ModuleName, { create: string; edit: string }>> = {
+  buildings: { create: 'buildings.create', edit: 'buildings.edit' }, rooms: { create: 'rooms.create', edit: 'rooms.edit' }, tenants: { create: 'tenants.create', edit: 'tenants.edit' },
+  contracts: { create: 'contracts.create', edit: 'contracts.edit' }, utilities: { create: 'utilities.create', edit: 'utilities.create' }, payments: { create: 'payments.receive', edit: 'payments.receive' },
+  maintenance: { create: 'maintenance.manage', edit: 'maintenance.manage' }, expenses: { create: 'expenses.manage', edit: 'expenses.manage' },
+};
+
 const configs: Record<ModuleName, ModuleConfig> = {
-  buildings: { title: 'module.buildings', help: 'module.buildingsHelp', table: 'buildings', select: 'id,code,name,address,floors,is_active', columns: [['code','field.code','text'],['name','field.name','text'],['address','field.address','text'],['floors','field.floors','text']], fields: [{name:'code',label:'field.code',type:'text',required:true},{name:'name',label:'field.name',type:'text',required:true},{name:'address',label:'field.address',type:'text'},{name:'floors',label:'field.floors',type:'number',required:true}] },
+  buildings: { title: 'module.buildings', help: 'module.buildingsHelp', table: 'buildings', select: 'id,code,name,address,floors,is_active', columns: [['code','field.code','text'],['name','field.name','text'],['address','field.address','text'],['floors','field.floors','text'],['is_active','common.status','status']], fields: [{name:'code',label:'field.code',type:'text',required:true},{name:'name',label:'field.name',type:'text',required:true},{name:'address',label:'field.address',type:'text'},{name:'floors',label:'field.floors',type:'number',required:true}] },
   rooms: { title: 'module.rooms', help: 'module.roomsHelp', table: 'rooms', select: 'id,room_number,building_id,floor,monthly_rent,default_deposit,status', columns: [['room_number','field.roomNumber','text'],['building_id','field.building','text'],['floor','field.floor','text'],['monthly_rent','field.monthlyRent','money'],['status','common.status','status']], fields: [{name:'room_number',label:'field.roomNumber',type:'text',required:true},{name:'building_id',label:'field.building',type:'select',required:true,optionSource:'buildings'},{name:'floor',label:'field.floor',type:'number',required:true},{name:'monthly_rent',label:'field.monthlyRent',type:'number',required:true},{name:'default_deposit',label:'field.deposit',type:'number',required:true},{name:'status',label:'common.status',type:'select',required:true,options:['available','reserved','maintenance','disabled']}] },
-  tenants: { title: 'module.tenants', help: 'module.tenantsHelp', table: 'tenants', select: 'id,tenant_code,full_name_lo,full_name_en,phone,email,is_active', columns: [['tenant_code','field.tenantCode','text'],['full_name_lo','field.fullNameLo','text'],['phone','field.phone','text'],['email','field.email','text']], fields: [{name:'tenant_code',label:'field.tenantCode',type:'text',required:true},{name:'full_name_lo',label:'field.fullNameLo',type:'text',required:true},{name:'full_name_en',label:'field.fullNameEn',type:'text'},{name:'phone',label:'field.phone',type:'text',required:true},{name:'email',label:'field.email',type:'email'},{name:'identity_number',label:'field.identity',type:'text'}] },
+  tenants: { title: 'module.tenants', help: 'module.tenantsHelp', table: 'tenants', select: 'id,tenant_code,full_name_lo,full_name_en,phone,email,identity_number,is_active', columns: [['tenant_code','field.tenantCode','text'],['full_name_lo','field.fullNameLo','text'],['phone','field.phone','text'],['email','field.email','text'],['is_active','common.status','status']], fields: [{name:'tenant_code',label:'field.tenantCode',type:'text',required:true},{name:'full_name_lo',label:'field.fullNameLo',type:'text',required:true},{name:'full_name_en',label:'field.fullNameEn',type:'text'},{name:'phone',label:'field.phone',type:'text',required:true},{name:'email',label:'field.email',type:'email'},{name:'identity_number',label:'field.identity',type:'text'}] },
   contracts: { title: 'module.contracts', help: 'module.contractsHelp', table: 'contracts', select: 'id,contract_no,tenant_id,room_id,start_date,end_date,monthly_rent,deposit_amount,status', columns: [['contract_no','field.contractNo','text'],['tenant_id','field.tenant','text'],['room_id','field.room','text'],['start_date','field.startDate','date'],['end_date','field.endDate','date'],['status','common.status','status']], fields: [{name:'contract_no',label:'field.contractNo',type:'text',required:true},{name:'tenant_id',label:'field.tenant',type:'select',required:true,optionSource:'tenants'},{name:'room_id',label:'field.room',type:'select',required:true,optionSource:'rooms'},{name:'start_date',label:'field.startDate',type:'date',required:true},{name:'end_date',label:'field.endDate',type:'date',required:true},{name:'monthly_rent',label:'field.monthlyRent',type:'number',required:true},{name:'deposit_amount',label:'field.deposit',type:'number',required:true},{name:'payment_due_day',label:'field.dueDay',type:'number',required:true},{name:'electricity_rate',label:'field.electricityRate',type:'number',required:true},{name:'water_rate',label:'field.waterRate',type:'number',required:true}] },
   utilities: { title: 'module.utilities', help: 'module.utilitiesHelp', table: 'meter_readings', select: 'id,room_id,meter_type,billing_month,previous_reading,current_reading,units_used,rate,amount', columns: [['room_id','field.room','text'],['meter_type','field.type','text'],['billing_month','field.billingMonth','date'],['previous_reading','field.previousReading','text'],['current_reading','field.currentReading','text'],['units_used','field.units','text'],['amount','common.amount','money']], fields: [{name:'room_id',label:'field.room',type:'select',required:true,optionSource:'rooms'},{name:'meter_type',label:'field.type',type:'select',required:true,options:['electricity','water']},{name:'billing_month',label:'field.billingMonth',type:'month',required:true},{name:'reading_date',label:'common.date',type:'date',required:true},{name:'previous_reading',label:'field.previousReading',type:'number',required:true},{name:'current_reading',label:'field.currentReading',type:'number',required:true},{name:'rate',label:'common.amount',type:'number',required:true}] },
   invoices: { title: 'module.invoices', help: 'module.invoicesHelp', table: 'invoices', select: 'id,invoice_no,billing_month,room_id,tenant_id,due_date,total,paid,balance,status', columns: [['invoice_no','field.invoiceNo','text'],['room_id','field.room','text'],['billing_month','field.billingMonth','date'],['due_date','field.dueDate','date'],['total','field.total','money'],['paid','field.paid','money'],['balance','field.balance','money'],['status','common.status','status']], fields: [], readOnly: true },
@@ -47,7 +54,39 @@ export function ModulePage({ module }: { module: ModuleName }) {
   const [error, setError] = useState(false);
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Row | null>(null);
+  const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: config.columns[0][0], direction: 'asc' });
+  const [page, setPage] = useState(1);
+  const [access, setAccess] = useState({ create: false, edit: false });
   const [options, setOptions] = useState<Record<string, { value: string; label: string }[]>>({});
+  const pageSize = 10;
+  const manageable = access.edit && (module === 'buildings' || module === 'rooms' || module === 'tenants');
+  const permission = modulePermissions[module];
+
+  useEffect(() => {
+    const client = supabase;
+    if (!client || !permission) return;
+    let current = true;
+    void Promise.all([
+      client.rpc('has_permission', { permission_code: permission.create }),
+      client.rpc('has_permission', { permission_code: permission.edit }),
+    ]).then(([create, edit]) => { if (current) setAccess({ create: create.data === true, edit: edit.data === true }); });
+    return () => { current = false; };
+  }, [permission]);
+
+  const loadOptions = useCallback(async () => {
+    const client = supabase;
+    if (!client) return;
+    const relationSources = config.columns.map(([key]) => sourceForKey(key)).filter((source): source is OptionSource => Boolean(source));
+    const sources = [...new Set([...config.fields.map((field) => field.optionSource).filter((source): source is OptionSource => Boolean(source)), ...relationSources])];
+    const next: Record<string, { value: string; label: string }[]> = {};
+    await Promise.all(sources.map(async (source) => {
+      const maps = { buildings: ['buildings','id,code,name'], rooms: ['rooms','id,room_number'], tenants: ['tenants','id,tenant_code,full_name_lo,full_name_en'], contracts: ['contracts','id,contract_no'], invoices: ['invoices','id,invoice_no,balance,status'], categories: ['expense_categories','id,name_lo,name_en'] } as const;
+      const [table, select] = maps[source]; const tableName: string = table; const columns: string = select; const { data } = await client.from(tableName).select(columns).limit(500);
+      next[source] = ((data ?? []) as unknown as Row[]).filter((row) => source !== 'invoices' || (row.status !== 'paid' && row.status !== 'cancelled')).map((row) => ({ value: String(row.id), label: String(row.name ?? row.room_number ?? row.full_name_lo ?? row.contract_no ?? row.invoice_no ?? row.name_lo ?? row.code ?? row.id) }));
+    }));
+    setOptions(next);
+  }, [config]);
 
   const load = useCallback(async () => {
     setLoading(true); setError(false);
@@ -56,51 +95,87 @@ export function ModulePage({ module }: { module: ModuleName }) {
     if (requestError) setError(true); else setRows((data ?? []) as unknown as Row[]);
     setLoading(false);
   }, [config]);
-  useEffect(() => { const timer = window.setTimeout(() => void load(), 0); return () => window.clearTimeout(timer); }, [load]);
+  useEffect(() => { const timer = window.setTimeout(() => { void load(); void loadOptions(); }, 0); return () => window.clearTimeout(timer); }, [load, loadOptions]);
 
-  const filtered = useMemo(() => rows.filter((row) => JSON.stringify(row).toLowerCase().includes(query.toLowerCase())), [query, rows]);
+  const filtered = useMemo(() => rows.filter((row) => JSON.stringify(row).toLowerCase().includes(query.toLowerCase())).sort((left, right) => {
+    const a = displayValue(left[sort.key]).toLocaleLowerCase(); const b = displayValue(right[sort.key]).toLocaleLowerCase();
+    return a.localeCompare(b, language === 'lo' ? 'lo' : 'en', { numeric: true }) * (sort.direction === 'asc' ? 1 : -1);
+  }), [language, query, rows, sort]);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
   const exportCsv = () => {
     const headers = config.columns.map(([key]) => key);
     const csv = [headers.join(','), ...filtered.map((row) => headers.map((key) => JSON.stringify(row[key] ?? '')).join(','))].join('\n');
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
     const link = document.createElement('a'); link.href = url; link.download = `${module}.csv`; link.click(); URL.revokeObjectURL(url);
   };
-  const openForm = async () => {
-    const client = supabase;
-    if (!client) { setOpen(true); return; }
-    const sources = [...new Set(config.fields.map((field) => field.optionSource).filter(Boolean))];
-    const next: Record<string, { value: string; label: string }[]> = {};
-    await Promise.all(sources.map(async (source) => {
-      if (!source) return;
-      const maps = { buildings: ['buildings','id,code,name'], rooms: ['rooms','id,room_number'], tenants: ['tenants','id,tenant_code,full_name_lo,full_name_en'], contracts: ['contracts','id,contract_no'], invoices: ['invoices','id,invoice_no,balance,status'], categories: ['expense_categories','id,name_lo,name_en'] } as const;
-      const [table, select] = maps[source]; const tableName: string = table; const columns: string = select; const { data } = await client.from(tableName).select(columns).limit(500);
-      next[source] = ((data ?? []) as unknown as Row[]).filter((row) => source !== 'invoices' || (row.status !== 'paid' && row.status !== 'cancelled')).map((row) => ({ value: String(row.id), label: String(row.name ?? row.room_number ?? row.full_name_lo ?? row.contract_no ?? row.invoice_no ?? row.name_lo ?? row.code ?? row.id) }));
-    }));
-    setOptions(next); setOpen(true);
+  const openForm = async (row: Row | null = null) => {
+    await loadOptions(); setEditing(row); setOpen(true);
   };
 
-  return <div className="space-y-6"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Horizon Workspace</p><h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground md:text-3xl">{t(config.title)}</h1><p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t(config.help)}</p></div><div className="flex gap-2">{module === 'reports' && <Button className="rounded-xl" variant="outline" onClick={exportCsv}><FileDown />CSV</Button>}{!config.readOnly && <Button className="rounded-xl" onClick={() => void openForm()}><Plus />{t('common.add')}</Button>}</div></div>
+  const toggleActive = async (row: Row) => {
+    if (!supabase) return;
+    if (module === 'rooms' && row.status === 'occupied') { await Swal.fire({ icon: 'warning', title: t('common.cannotDeactivateOccupied'), confirmButtonColor: '#4318ff' }); return; }
+    const active = module === 'rooms' ? row.status !== 'disabled' : row.is_active !== false;
+    const confirmed = await Swal.fire({ icon: 'question', title: active ? t('common.confirmDeactivate') : t('common.confirmActivate'), showCancelButton: true, confirmButtonText: t('common.confirm'), cancelButtonText: t('common.cancel'), confirmButtonColor: '#4318ff' });
+    if (!confirmed.isConfirmed) return;
+    const payload = module === 'rooms' ? { status: active ? 'disabled' : 'available' } : { is_active: !active };
+    const { error: requestError } = await supabase.from(config.table).update(payload).eq('id', String(row.id));
+    if (requestError) { await Swal.fire({ icon: 'error', title: t('common.error'), confirmButtonColor: '#4318ff' }); return; }
+    await load();
+  };
+
+  const changeSort = (key: string) => setSort((current) => ({ key, direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc' }));
+
+  return <div className="space-y-6"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Horizon Workspace</p><h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground md:text-3xl">{t(config.title)}</h1><p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t(config.help)}</p></div><div className="flex gap-2">{module === 'reports' && <Button className="rounded-xl" variant="outline" onClick={exportCsv}><FileDown />CSV</Button>}{!config.readOnly && access.create && <Button className="rounded-xl" onClick={() => void openForm(null)}><Plus />{t('common.add')}</Button>}</div></div>
     {!isSupabaseConfigured && <div className="rounded-2xl border border-amber-200/70 bg-amber-50/90 p-4 dark:border-amber-400/20 dark:bg-amber-400/10"><p className="font-semibold text-amber-900 dark:text-amber-200">{t('setup.title')}</p><p className="mt-1 text-sm text-amber-800 dark:text-amber-300">{t('setup.description')}</p></div>}
-    <Card className="overflow-hidden border-0 py-0"><CardContent className="p-0"><div className="flex gap-2 border-b border-border/70 bg-card/80 p-4"><div className="relative max-w-sm flex-1"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"/><Input value={query} onChange={(event) => setQuery(event.target.value)} className="h-10 rounded-xl bg-background/70 pl-9" placeholder={t('common.search')} /></div><Button className="rounded-xl" variant="outline" size="icon-lg" onClick={() => void load()} aria-label={t('common.refresh')}><RefreshCw /></Button></div>
-      {loading ? <div className="grid min-h-64 place-items-center text-muted-foreground"><LoaderCircle className="size-6 animate-spin text-primary" /></div> : error ? <div className="grid min-h-64 place-items-center text-center"><div><p className="font-semibold text-destructive">{t('common.error')}</p><Button variant="outline" className="mt-3 rounded-xl" onClick={() => void load()}>{t('common.refresh')}</Button></div></div> : filtered.length === 0 ? <div className="grid min-h-64 place-items-center px-4 text-center"><div><p className="font-semibold text-foreground">{t('common.noRecords')}</p><p className="mt-1 text-sm text-muted-foreground">{t('common.noRecordsHelp')}</p></div></div> : <Table><TableHeader className="bg-muted/40"><TableRow>{config.columns.map(([key,label]) => <TableHead className="h-12 px-5 text-xs font-bold uppercase tracking-wider text-muted-foreground" key={key}>{t(label)}</TableHead>)}</TableRow></TableHeader><TableBody>{filtered.map((row) => <TableRow className="h-14 border-border/60 hover:bg-primary/[0.035] dark:hover:bg-white/[0.035]" key={String(row.id)}>{config.columns.map(([key,,kind]) => <TableCell className="px-5 text-foreground" key={key}>{renderCell(row[key],kind,language,t)}</TableCell>)}</TableRow>)}</TableBody></Table>}
-    </CardContent></Card>{!config.readOnly && <RecordDialog open={open} onOpenChange={setOpen} module={module} config={config} options={options} onSaved={load} />}</div>;
+    <Card className="overflow-hidden border-0 py-0"><CardContent className="p-0"><div className="flex gap-2 border-b border-border/70 bg-card/80 p-4"><div className="relative max-w-sm flex-1"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"/><Input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} className="h-10 rounded-xl bg-background/70 pl-9" placeholder={t('common.search')} /></div><Button className="rounded-xl" variant="outline" size="icon-lg" onClick={() => void load()} aria-label={t('common.refresh')}><RefreshCw /></Button></div>
+      {loading ? <div className="grid min-h-64 place-items-center text-muted-foreground"><LoaderCircle className="size-6 animate-spin text-primary" /></div> : error ? <div className="grid min-h-64 place-items-center text-center"><div><p className="font-semibold text-destructive">{t('common.error')}</p><Button variant="outline" className="mt-3 rounded-xl" onClick={() => void load()}>{t('common.refresh')}</Button></div></div> : filtered.length === 0 ? <div className="grid min-h-64 place-items-center px-4 text-center"><div><p className="font-semibold text-foreground">{t('common.noRecords')}</p><p className="mt-1 text-sm text-muted-foreground">{t('common.noRecordsHelp')}</p></div></div> : <><Table><TableHeader className="bg-muted/40"><TableRow>{config.columns.map(([key,label]) => <TableHead className="h-12 px-5 text-xs font-bold uppercase tracking-wider text-muted-foreground" key={key}><button type="button" onClick={() => changeSort(key)} className="flex items-center gap-1.5 hover:text-foreground">{t(label)}<ArrowUpDown className="size-3.5" /></button></TableHead>)}{manageable && <TableHead className="w-28 px-5 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground">{t('common.actions')}</TableHead>}</TableRow></TableHeader><TableBody>{pageRows.map((row) => <TableRow className="h-14 border-border/60 hover:bg-primary/[0.035] dark:hover:bg-white/[0.035]" key={String(row.id)}>{config.columns.map(([key,,kind]) => <TableCell className="px-5 text-foreground" key={key}>{renderCell(row[key],kind,language,t,key,options)}</TableCell>)}{manageable && <TableCell className="px-5"><div className="flex justify-end gap-1"><Button variant="ghost" size="icon-sm" className="rounded-lg" onClick={() => void openForm(row)} aria-label={t('common.edit')}><Pencil /></Button><Button variant="ghost" size="icon-sm" className="rounded-lg text-muted-foreground hover:text-primary" onClick={() => void toggleActive(row)} aria-label={t(row.is_active === false || row.status === 'disabled' ? 'common.activate' : 'common.deactivate')}><Power /></Button></div></TableCell>}</TableRow>)}</TableBody></Table><div className="flex flex-col gap-3 border-t border-border/70 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between"><p className="text-muted-foreground">{filtered.length} {t('common.records')}</p><div className="flex items-center justify-end gap-2"><Button variant="outline" size="icon-sm" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={page === 1} aria-label={t('common.previous')}><ChevronLeft /></Button><span className="min-w-20 text-center text-xs font-semibold text-foreground">{t('common.page')} {page} {t('common.of')} {pageCount}</span><Button variant="outline" size="icon-sm" onClick={() => setPage((value) => Math.min(pageCount, value + 1))} disabled={page === pageCount} aria-label={t('common.next')}><ChevronRight /></Button></div></div></>}
+    </CardContent></Card>{!config.readOnly && <RecordDialog open={open} onOpenChange={setOpen} module={module} config={config} options={options} editing={editing} onSaved={load} />}</div>;
+}
+
+function sourceForKey(key: string): OptionSource | undefined {
+  return ({ building_id: 'buildings', room_id: 'rooms', tenant_id: 'tenants', contract_id: 'contracts', invoice_id: 'invoices', category_id: 'categories' } as Record<string, OptionSource>)[key];
 }
 
 function displayValue(value: unknown) { return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' ? String(value) : '—'; }
 
-function renderCell(value: unknown, kind: 'text' | 'money' | 'date' | 'status', language: 'lo' | 'en', t: (key: TranslationKey) => string) {
+function renderCell(value: unknown, kind: 'text' | 'money' | 'date' | 'status', language: 'lo' | 'en', t: (key: TranslationKey) => string, key: string, options: Record<string, { value: string; label: string }[]>) {
+  const source = sourceForKey(key);
+  if (source) return options[source]?.find((option) => option.value === displayValue(value))?.label ?? displayValue(value);
   if (kind === 'money') return <span className="font-medium tabular-nums">{formatMoney(Number(value ?? 0), language)}</span>;
   if (kind === 'date') return formatDate(displayValue(value));
-  if (kind === 'status') { const raw = displayValue(value); const key = `status.${raw}` as TranslationKey; return <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary dark:bg-primary/20 dark:text-violet-200">{t(key) ?? raw}</span>; }
+  if (kind === 'status') { const raw = typeof value === 'boolean' ? (value ? 'active' : 'inactive') : displayValue(value); const key = `status.${raw}` as TranslationKey; return <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary dark:bg-primary/20 dark:text-violet-200">{t(key) ?? raw}</span>; }
   return displayValue(value);
 }
 
-function RecordDialog({ open, onOpenChange, module, config, options, onSaved }: { open: boolean; onOpenChange: (open: boolean) => void; module: ModuleName; config: ModuleConfig; options: Record<string, {value:string;label:string}[]>; onSaved: () => Promise<void> }) {
+function RecordDialog({ open, onOpenChange, module, config, options, editing, onSaved }: { open: boolean; onOpenChange: (open: boolean) => void; module: ModuleName; config: ModuleConfig; options: Record<string, {value:string;label:string}[]>; editing: Row | null; onSaved: () => Promise<void> }) {
   const { t } = useI18n();
   const { dark } = useTheme();
-  const shape = Object.fromEntries(config.fields.map((field) => [field.name, field.required ? z.string().min(1, t('common.required')) : z.string().optional()]));
+  const shape = Object.fromEntries(config.fields.map((field) => {
+    const base = field.required ? z.string().min(1, t('common.required')) : z.string();
+    if (field.type === 'email') return [field.name, base.refine((value) => !value || z.email().safeParse(value).success, t('common.invalidEmail'))];
+    if (field.type === 'number') return [field.name, base.refine((value) => {
+      if (!value) return !field.required;
+      const number = Number(value);
+      if (!Number.isFinite(number) || number < 0) return false;
+      if ((field.name === 'floor' || field.name === 'floors') && number < 1) return false;
+      if (field.name === 'payment_due_day' && (number < 1 || number > 28)) return false;
+      return true;
+    }, t('common.invalidNumber'))];
+    return [field.name, base];
+  }));
   const schema = z.object(shape);
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({ resolver: zodResolver(schema) as Resolver<FormValues> });
+  useEffect(() => {
+    if (!open) return;
+    const values = Object.fromEntries(config.fields.map((field) => {
+      const raw = editing?.[field.name];
+      const value = field.type === 'month' && typeof raw === 'string' ? raw.slice(0, 7) : raw == null ? '' : displayValue(raw);
+      return [field.name, value];
+    }));
+    reset(values);
+  }, [config.fields, editing, open, reset]);
   const submit = handleSubmit(async (values) => {
     if (!supabase) { await Swal.fire({ icon:'warning', title:t('setup.title'), text:t('setup.description'), confirmButtonColor:'#4318ff', background:dark ? '#111c44' : '#ffffff', color:dark ? '#ffffff' : '#1b2559' }); return; }
     const payload: Record<string, unknown> = {};
@@ -112,6 +187,9 @@ function RecordDialog({ open, onOpenChange, module, config, options, onSaved }: 
       const stamp = crypto.randomUUID().slice(0, 8).toUpperCase();
       const { error } = await supabase.rpc('receive_payment', { target_invoice_id: payload.invoice_id, payment_amount: payload.amount, method: payload.payment_method, bank_name: null, payment_reference: null, slip_path: null, payment_notes: null, payment_number: `PAY-${stamp}`, receipt_number: `REC-${stamp}`, request_key: crypto.randomUUID() });
       requestError = error;
+    } else if (editing) {
+      const { error } = await supabase.from(config.table).update(payload).eq('id', String(editing.id));
+      requestError = error;
     } else {
       const { error } = await supabase.from(config.table).insert(payload);
       requestError = error;
@@ -119,5 +197,5 @@ function RecordDialog({ open, onOpenChange, module, config, options, onSaved }: 
     if (requestError) { await Swal.fire({ icon:'error', title:t('common.error'), confirmButtonColor:'#4318ff', background:dark ? '#111c44' : '#ffffff', color:dark ? '#ffffff' : '#1b2559' }); return; }
     await Swal.fire({ icon:'success', title:t('common.saved'), timer:1200, showConfirmButton:false, background:dark ? '#111c44' : '#ffffff', color:dark ? '#ffffff' : '#1b2559' }); reset(); onOpenChange(false); await onSaved();
   });
-  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl border-0 p-6 shadow-2xl ring-1 ring-border sm:max-w-xl"><DialogHeader><DialogTitle className="text-xl font-bold text-foreground">{t('common.add')} {t(config.title)}</DialogTitle><DialogDescription>{t(config.help)}</DialogDescription></DialogHeader><form id={`form-${module}`} className="grid gap-4 py-2 sm:grid-cols-2" onSubmit={submit}>{config.fields.map((field) => <div key={field.name} className="space-y-2"><Label className="font-semibold text-foreground" htmlFor={`${module}-${field.name}`}>{t(field.label)}</Label>{field.type === 'select' ? <select id={`${module}-${field.name}`} className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" {...register(field.name)}><option value="">—</option>{field.options?.map((value) => <option key={value} value={value}>{value}</option>)}{field.optionSource && options[field.optionSource]?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : <Input id={`${module}-${field.name}`} type={field.type} step={field.type === 'number' ? 'any' : undefined} className="h-10" {...register(field.name)} />}{errors[field.name] && <p className="text-xs text-destructive">{String(errors[field.name]?.message)}</p>}</div>)}</form><DialogFooter className="-mx-6 -mb-6 rounded-b-2xl px-6"><Button className="rounded-xl" variant="outline" type="button" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button><Button className="rounded-xl" type="submit" form={`form-${module}`} disabled={isSubmitting}>{isSubmitting && <LoaderCircle className="animate-spin" />}{t('common.save')}</Button></DialogFooter></DialogContent></Dialog>;
+  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl border-0 p-6 shadow-2xl ring-1 ring-border sm:max-w-xl"><DialogHeader><DialogTitle className="text-xl font-bold text-foreground">{editing ? t('common.edit') : t('common.add')} {t(config.title)}</DialogTitle><DialogDescription>{t(config.help)}</DialogDescription></DialogHeader><form id={`form-${module}`} className="grid gap-4 py-2 sm:grid-cols-2" onSubmit={submit}>{config.fields.map((field) => <div key={field.name} className="space-y-2"><Label className="font-semibold text-foreground" htmlFor={`${module}-${field.name}`}>{t(field.label)}</Label>{field.type === 'select' ? <select id={`${module}-${field.name}`} className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" {...register(field.name)}><option value="">—</option>{field.options?.map((value) => <option key={value} value={value}>{value}</option>)}{field.optionSource && options[field.optionSource]?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : <Input id={`${module}-${field.name}`} type={field.type} min={field.type === 'number' ? (field.name === 'floor' || field.name === 'floors' || field.name === 'payment_due_day' ? 1 : 0) : undefined} max={field.name === 'payment_due_day' ? 28 : undefined} step={field.type === 'number' ? 'any' : undefined} className="h-10" {...register(field.name)} />}{errors[field.name] && <p className="text-xs text-destructive">{String(errors[field.name]?.message)}</p>}</div>)}</form><DialogFooter className="-mx-6 -mb-6 rounded-b-2xl px-6"><Button className="rounded-xl" variant="outline" type="button" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button><Button className="rounded-xl" type="submit" form={`form-${module}`} disabled={isSubmitting}>{isSubmitting && <LoaderCircle className="animate-spin" />}{t('common.save')}</Button></DialogFooter></DialogContent></Dialog>;
 }

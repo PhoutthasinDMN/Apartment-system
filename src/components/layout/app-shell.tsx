@@ -19,7 +19,7 @@ const navigation = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { language, setLanguage, t } = useI18n();
-  const { configured, signOut, user } = useAuth();
+  const { configured, profile, signOut, user } = useAuth();
   const navigate = useNavigate();
   const { dark, toggleTheme } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
@@ -53,7 +53,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="hidden rounded-xl bg-[#F4F7FE] p-1 text-xs font-bold dark:bg-white/5 sm:flex"><button onClick={() => setLanguage('lo')} className={cn('rounded-lg px-2.5 py-1.5 transition', language === 'lo' ? 'bg-white text-primary shadow-sm dark:bg-white/10 dark:text-violet-300' : 'text-[#A3AED0]')}>{t('common.lao')}</button><button onClick={() => setLanguage('en')} className={cn('rounded-lg px-2.5 py-1.5 transition', language === 'en' ? 'bg-white text-primary shadow-sm dark:bg-white/10 dark:text-violet-300' : 'text-[#A3AED0]')}>{t('common.english')}</button></div>
             <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-xl text-[#A3AED0] hover:text-primary" aria-label={dark ? t('common.lightMode') : t('common.darkMode')}>{dark ? <Sun /> : <Moon />}</Button>
             <Button variant="ghost" size="icon" className="relative rounded-xl text-[#A3AED0] hover:text-primary" aria-label={t('header.notifications')}><Bell /><span className="absolute right-2 top-2 size-2 rounded-full bg-[#FF5252] ring-2 ring-white dark:ring-[#111C44]" /></Button>
-            <button type="button" onClick={async () => { if (configured) { await signOut(); await navigate('/login'); } }} className="ml-1 flex items-center gap-2 rounded-xl p-1.5 text-left transition hover:bg-[#F4F7FE] dark:hover:bg-white/5" title={t('header.logout')}><div className="grid size-9 place-items-center rounded-xl bg-primary text-sm font-bold text-white shadow-md">{user?.email?.[0]?.toUpperCase() ?? 'A'}</div><div className="hidden leading-tight xl:block"><p className="max-w-32 truncate text-xs font-bold text-[#2B3674] dark:text-white">{user?.email ?? t('header.profileRole')}</p><p className="text-[11px] font-medium text-[#A3AED0]">{t('header.profileRole')}</p></div>{configured && <LogOut className="hidden size-4 text-[#A3AED0] xl:block" />}</button>
+            <button type="button" onClick={async () => { if (configured) { await signOut(); await navigate('/login'); } }} className="ml-1 flex items-center gap-2 rounded-xl p-1.5 text-left transition hover:bg-[#F4F7FE] dark:hover:bg-white/5" title={t('header.logout')}><div className="grid size-9 place-items-center rounded-xl bg-primary text-sm font-bold text-white shadow-md">{profile?.fullName?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? 'A'}</div><div className="hidden leading-tight xl:block"><p className="max-w-32 truncate text-xs font-bold text-[#2B3674] dark:text-white">{profile?.fullName ?? user?.email ?? t('header.profileRole')}</p><p className="text-[11px] font-medium text-[#A3AED0]">{profile?.roleName ?? t('header.profileRole')}</p></div>{configured && <LogOut className="hidden size-4 text-[#A3AED0] xl:block" />}</button>
           </div>
         </div>
       </header>
