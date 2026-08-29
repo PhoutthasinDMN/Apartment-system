@@ -150,7 +150,7 @@
   "field.phone": "Phone",
   "field.email": "Email",
   "field.identity": "ID card / Household registration / Stay permit",
-  "field.attachments": "Document attachments",
+  "field.attachments": "ID card / Household registration / Stay permit",
   "field.attachmentsHelp": "Attach JPG, PNG, or PDF files up to 10 MB each",
   "field.contractNo": "Contract no.",
   "field.tenant": "Tenant",
