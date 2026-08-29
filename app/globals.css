@@ -144,15 +144,52 @@
 
 @layer base {
   * { @apply border-border outline-ring/50; }
-  html { @apply font-sans; }
-  body { @apply bg-background text-foreground antialiased; }
+  html { @apply font-sans; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body { @apply min-h-dvh bg-background text-foreground antialiased; overscroll-behavior-y: none; }
   button, input, textarea, select { font: inherit; }
+  button, a { -webkit-tap-highlight-color: transparent; }
   ::selection { background: color-mix(in oklab, var(--primary) 28%, transparent); }
+}
+
+@media (max-width: 767px) {
+  input, textarea, select { font-size: 16px; }
+}
+
+@media (pointer: coarse) {
+  button, [role='button'], a { touch-action: manipulation; min-height: 44px; min-width: 44px; }
+}
+
+@supports (padding: env(safe-area-inset-top)) {
+  body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
 }
 
 @layer utilities {
   .horizon-surface { @apply rounded-[20px] bg-card shadow-[0_18px_40px_rgba(112,144,176,0.10)] dark:shadow-[0_18px_40px_rgba(2,8,23,0.28)]; }
   .horizon-muted { @apply text-[#A3AED0] dark:text-[#8F9BBA]; }
+}
+
+@layer base {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  textarea {
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 0.75rem;
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+  }
+}
+
+@layer base {
+  .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
 }
 
 @media print {

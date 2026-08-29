@@ -11,6 +11,7 @@ interface AuthValue {
   user: User | null;
   profile: { fullName: string; roleCode: string; roleName: string; active: boolean } | null;
   signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
@@ -51,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user: session?.user ?? null,
     profile,
     signIn: async (email, password) => { if (!supabase) throw new Error('not_configured'); const { error } = await supabase.auth.signInWithPassword({ email, password }); if (error) throw error; },
+    signUp: async (email, password, fullName) => { if (!supabase) throw new Error('not_configured'); const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName } } }); if (error) throw error; },
     signOut: async () => { if (supabase) { const { error } = await supabase.auth.signOut(); if (error) throw error; } },
     resetPassword: async (email) => { if (!supabase) throw new Error('not_configured'); const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/#/reset-password` }); if (error) throw error; },
     updatePassword: async (password) => { if (!supabase) throw new Error('not_configured'); const { error } = await supabase.auth.updateUser({ password }); if (error) throw error; },

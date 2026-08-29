@@ -7,7 +7,9 @@ export function formatMoney(value: number | string | null | undefined, language:
 
 export function formatDate(value: string | Date | null | undefined) {
   if (!value) return '—';
-  return format(new Date(value), 'dd/MM/yyyy');
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return format(date, 'dd/MM/yyyy');
 }
 
 export function friendlyError(error: unknown) {

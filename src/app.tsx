@@ -17,18 +17,18 @@ export function App() {
     <Route path="/reset-password" element={<PasswordUpdatePage />} />
     <Route path="/*" element={<ProtectedRoute><AppShell><Routes>
       <Route path="/" element={<DashboardPage />} />
-      <Route path="/buildings" element={<ModulePage module="buildings" />} />
-      <Route path="/rooms" element={<ModulePage module="rooms" />} />
-      <Route path="/tenants" element={<ModulePage module="tenants" />} />
-      <Route path="/contracts" element={<ModulePage module="contracts" />} />
-      <Route path="/utilities" element={<ModulePage module="utilities" />} />
-      <Route path="/invoices" element={<ModulePage module="invoices" />} />
-      <Route path="/payments" element={<ModulePage module="payments" />} />
-      <Route path="/maintenance" element={<ModulePage module="maintenance" />} />
-      <Route path="/expenses" element={<ModulePage module="expenses" />} />
-      <Route path="/reports" element={<ModulePage module="reports" />} />
-      <Route path="/settings" element={<ModulePage module="settings" />} />
-      <Route path="/users" element={<ModulePage module="users" />} />
+      <Route path="/buildings" element={<ModulePage key="buildings" module="buildings" />} />
+      <Route path="/rooms" element={<ModulePage key="rooms" module="rooms" />} />
+      <Route path="/tenants" element={<ModulePage key="tenants" module="tenants" />} />
+      <Route path="/contracts" element={<ModulePage key="contracts" module="contracts" />} />
+      <Route path="/utilities" element={<ModulePage key="utilities" module="utilities" />} />
+      <Route path="/invoices" element={<ModulePage key="invoices" module="invoices" />} />
+      <Route path="/payments" element={<ModulePage key="payments" module="payments" />} />
+      <Route path="/maintenance" element={<ModulePage key="maintenance" module="maintenance" />} />
+      <Route path="/expenses" element={<ModulePage key="expenses" module="expenses" />} />
+      <Route path="/reports" element={<ModulePage key="reports" module="reports" />} />
+      <Route path="/settings" element={<ModulePage key="settings" module="settings" />} />
+      <Route path="/users" element={<ModulePage key="users" module="users" />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes></AppShell></ProtectedRoute>} />
   </Routes></HashRouter></AuthProvider></ThemeProvider></I18nProvider>;
