@@ -1,21 +1,40 @@
 'use client';
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore } from 'react';
 
 interface ThemeValue { dark: boolean; toggleTheme: () => void; }
 const ThemeContext = createContext<ThemeValue | null>(null);
+const themeListeners = new Set<() => void>();
+
+function getThemeSnapshot() {
+  return window.localStorage.getItem('apartment-theme') === 'dark';
+}
+
+function subscribeToTheme(listener: () => void) {
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === 'apartment-theme') listener();
+  };
+  themeListeners.add(listener);
+  window.addEventListener('storage', handleStorage);
+  return () => {
+    themeListeners.delete(listener);
+    window.removeEventListener('storage', handleStorage);
+  };
+}
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [dark, setDark] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    const saved = window.localStorage.getItem('apartment-theme');
-    return saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
+  const dark = useSyncExternalStore(subscribeToTheme, getThemeSnapshot, () => false);
+
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
-    window.localStorage.setItem('apartment-theme', dark ? 'dark' : 'light');
   }, [dark]);
-  const value = useMemo(() => ({ dark, toggleTheme: () => setDark((current) => !current) }), [dark]);
+
+  const toggleTheme = useCallback(() => {
+    window.localStorage.setItem('apartment-theme', dark ? 'light' : 'dark');
+    themeListeners.forEach((listener) => listener());
+  }, [dark]);
+
+  const value = useMemo(() => ({ dark, toggleTheme }), [dark, toggleTheme]);
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
