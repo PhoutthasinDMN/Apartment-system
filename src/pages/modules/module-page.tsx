@@ -40,7 +40,7 @@ const configs: Record<ModuleName, ModuleConfig> = {
   contracts: { title: 'module.contracts', help: 'module.contractsHelp', table: 'contracts', select: 'id,contract_no,tenant_id,room_id,start_date,end_date,monthly_rent,deposit_amount,payment_due_day,electricity_rate,water_rate,status', columns: [['contract_no','field.contractNo','text'],['tenant_id','field.tenant','text'],['room_id','field.room','text'],['start_date','field.startDate','date'],['end_date','field.endDate','date'],['status','common.status','status']], fields: [{name:'contract_no',label:'field.contractNo',type:'text',required:true},{name:'tenant_id',label:'field.tenant',type:'select',required:true,optionSource:'tenants'},{name:'room_id',label:'field.room',type:'select',required:true,optionSource:'rooms'},{name:'start_date',label:'field.startDate',type:'date',required:true},{name:'end_date',label:'field.endDate',type:'date',required:true},{name:'monthly_rent',label:'field.monthlyRent',type:'number',required:true},{name:'deposit_amount',label:'field.deposit',type:'number',required:true},{name:'payment_due_day',label:'field.dueDay',type:'number',required:true},{name:'electricity_rate',label:'field.electricityRate',type:'number',required:true},{name:'water_rate',label:'field.waterRate',type:'number',required:true}] },
   utilities: { title: 'module.utilities', help: 'module.utilitiesHelp', table: 'meter_readings', select: 'id,room_id,meter_type,billing_month,previous_reading,current_reading,units_used,rate,amount', columns: [['room_id','field.room','text'],['meter_type','field.type','text'],['billing_month','field.billingMonth','date'],['previous_reading','field.previousReading','text'],['current_reading','field.currentReading','text'],['units_used','field.units','text'],['amount','common.amount','money']], fields: [{name:'room_id',label:'field.room',type:'select',required:true,optionSource:'rooms'},{name:'meter_type',label:'field.type',type:'select',required:true,options:['electricity','water']},{name:'billing_month',label:'field.billingMonth',type:'month',required:true},{name:'reading_date',label:'common.date',type:'date',required:true},{name:'previous_reading',label:'field.previousReading',type:'number',required:true},{name:'current_reading',label:'field.currentReading',type:'number',required:true},{name:'rate',label:'common.amount',type:'number',required:true}] },
   invoices: { title: 'module.invoices', help: 'module.invoicesHelp', table: 'invoices', select: 'id,invoice_no,billing_month,room_id,tenant_id,due_date,total,paid,balance,status', columns: [['invoice_no','field.invoiceNo','text'],['room_id','field.room','text'],['billing_month','field.billingMonth','date'],['due_date','field.dueDate','date'],['total','field.total','money'],['paid','field.paid','money'],['balance','field.balance','money'],['status','common.status','status']], fields: [], readOnly: true },
-  payments: { title: 'module.payments', help: 'module.paymentsHelp', table: 'payments', select: 'id,payment_no,receipt_no,invoice_id,room_id,amount,payment_date,payment_method', columns: [['receipt_no','field.receiptNo','text'],['invoice_id','field.invoiceNo','text'],['room_id','field.room','text'],['amount','common.amount','money'],['payment_date','common.date','date'],['payment_method','field.method','text']], fields: [{name:'invoice_id',label:'field.invoiceNo',type:'select',required:true,optionSource:'invoices'},{name:'amount',label:'common.amount',type:'number',required:true},{name:'payment_method',label:'field.method',type:'select',required:true,options:['cash','bank_transfer','qr','other']}] },
+  payments: { title: 'module.payments', help: 'module.paymentsHelp', table: 'payments', select: 'id,payment_no,receipt_no,room_id,amount,payment_date,payment_method,notes', columns: [['receipt_no','field.receiptNo','text'],['room_id','field.room','text'],['notes','field.paymentCategory','status'],['amount','common.amount','money'],['payment_date','common.date','date'],['payment_method','field.method','text']], fields: [{name:'room_id',label:'field.room',type:'select',required:true,optionSource:'rooms'},{name:'payment_category',label:'field.paymentCategory',type:'select',required:true,options:['rent','electricity','water','garbage']},{name:'amount',label:'common.amount',type:'number',required:true},{name:'payment_method',label:'field.method',type:'select',required:true,options:['cash','bank_transfer','qr','other']}] },
   maintenance: { title: 'module.maintenance', help: 'module.maintenanceHelp', table: 'maintenance_requests', select: 'id,ticket_no,room_id,issue,category,priority,due_date,cost,status', columns: [['ticket_no','field.code','text'],['room_id','field.room','text'],['issue','field.issue','text'],['category','field.category','text'],['priority','field.priority','status'],['due_date','field.dueDate','date'],['status','common.status','status']], fields: [{name:'ticket_no',label:'field.code',type:'text',required:true},{name:'room_id',label:'field.room',type:'select',optionSource:'rooms'},{name:'issue',label:'field.issue',type:'text',required:true},{name:'category',label:'field.category',type:'text',required:true},{name:'priority',label:'field.priority',type:'select',required:true,options:['low','normal','high','urgent']},{name:'description',label:'field.description',type:'text'},{name:'due_date',label:'field.dueDate',type:'date'},{name:'cost',label:'common.amount',type:'number'},{name:'status',label:'common.status',type:'select',options:['open','assigned','in_progress','completed','cancelled']}] },
   expenses: { title: 'module.expenses', help: 'module.expensesHelp', table: 'expenses', select: 'id,expense_no,expense_date,category_id,building_id,room_id,description,amount,supplier,payment_method,reference_no', columns: [['expense_no','field.code','text'],['expense_date','common.date','date'],['description','field.description','text'],['supplier','field.supplier','text'],['amount','common.amount','money'],['payment_method','field.method','text']], fields: [{name:'expense_no',label:'field.code',type:'text',required:true},{name:'expense_date',label:'common.date',type:'date',required:true},{name:'category_id',label:'field.category',type:'select',required:true,optionSource:'categories'},{name:'building_id',label:'field.building',type:'select',optionSource:'buildings'},{name:'room_id',label:'field.room',type:'select',optionSource:'rooms'},{name:'description',label:'field.description',type:'text',required:true},{name:'amount',label:'common.amount',type:'number',required:true},{name:'supplier',label:'field.supplier',type:'text'},{name:'payment_method',label:'field.method',type:'select',required:true,options:['cash','bank_transfer','qr','other']},{name:'reference_no',label:'field.code',type:'text'}] },
   reports: { title: 'module.reports', help: 'module.reportsHelp', table: 'invoices', select: 'id,invoice_no,billing_month,total,paid,balance,status', columns: [['billing_month','field.billingMonth','date'],['invoice_no','field.invoiceNo','text'],['total','field.total','money'],['paid','field.paid','money'],['balance','field.balance','money'],['status','common.status','status']], fields: [], readOnly: true },
@@ -145,6 +145,7 @@ export function ModulePage({ module }: { module: ModuleName }) {
         if (module === 'tenants') {
           initialValues.tenant_code = `TN-${Date.now().toString().slice(-8)}`;
         }
+        if (module === 'payments') initialValues.room_id = roomId;
         if (module === 'contracts' && supabase) {
           const [{ data: room }, { data: settings }] = await Promise.all([
             supabase.from('rooms').select('monthly_rent,default_deposit').eq('id', roomId).maybeSingle(),
@@ -411,7 +412,7 @@ function nextPaymentDueDate(paymentDueDay: number, today: Date) {
 }
 
 function RecordDialog({ open, onOpenChange, module, config, options, editing, defaults, workflowMode, onSaved }: { open: boolean; onOpenChange: (open: boolean) => void; module: ModuleName; config: ModuleConfig; options: Record<string, {value:string;label:string}[]>; editing: Row | null; defaults: Row; workflowMode: 'checkin' | 'reserve' | null; onSaved: (savedId?: string | null) => Promise<void> }) {
-  const { t } = useI18n();
+  const { language, t } = useI18n();
   const { dark } = useTheme();
   const [tenantFiles, setTenantFiles] = useState<File[]>([]);
   const [existingDocuments, setExistingDocuments] = useState<{ id: string; original_name: string }[]>([]);
@@ -476,9 +477,43 @@ function RecordDialog({ open, onOpenChange, module, config, options, editing, de
     let requestError: { message: string } | null = null;
     let createdId: string | null = null;
     if (module === 'payments') {
-      const stamp = crypto.randomUUID().slice(0, 8).toUpperCase();
-      const { error } = await supabase.rpc('receive_payment', { target_invoice_id: payload.invoice_id, payment_amount: payload.amount, method: payload.payment_method, bank_name: null, payment_reference: null, slip_path: null, payment_notes: null, payment_number: `PAY-${stamp}`, receipt_number: `REC-${stamp}`, request_key: crypto.randomUUID() });
-      requestError = error;
+      const category = values.payment_category;
+      const roomId = values.room_id;
+      const { data: invoiceData, error: invoiceError } = await supabase
+        .from('invoices')
+        .select('id,balance,due_date,invoice_items(item_type,description,amount),payments(amount,notes,voided_at)')
+        .eq('room_id', roomId)
+        .in('status', ['unpaid', 'partial', 'overdue'])
+        .order('due_date', { ascending: true });
+      if (invoiceError) {
+        requestError = invoiceError;
+      } else {
+        const payableInvoice = ((invoiceData ?? []) as unknown as Array<{
+          id: string;
+          balance: number;
+          invoice_items: Array<{ item_type?: string; description?: string; amount?: number }> | null;
+          payments: Array<{ amount?: number; notes?: string; voided_at?: string | null }> | null;
+        }>).map((invoice) => {
+          const itemTotal = (invoice.invoice_items ?? []).reduce((sum, item) => {
+            const description = String(item.description ?? '').toLocaleLowerCase();
+            const matches = category === 'garbage'
+              ? (item.item_type === 'service' || item.item_type === 'other') && /garbage|trash|waste|ຂີ້ເຫຍື້ອ/.test(description)
+              : item.item_type === category;
+            return matches ? sum + Number(item.amount ?? 0) : sum;
+          }, 0);
+          const categoryPaid = (invoice.payments ?? []).reduce((sum, payment) => !payment.voided_at && payment.notes === category ? sum + Number(payment.amount ?? 0) : sum, 0);
+          return { invoice, categoryBalance: Math.max(0, Math.min(Number(invoice.balance ?? 0), itemTotal - categoryPaid)) };
+        }).find(({ categoryBalance }) => categoryBalance > 0);
+        if (!payableInvoice) {
+          requestError = { message: t('payment.noPayableCharge') };
+        } else if (Number(payload.amount) > payableInvoice.categoryBalance) {
+          requestError = { message: t('payment.exceedsCategoryBalance').replace('{amount}', formatMoney(payableInvoice.categoryBalance, language)) };
+        } else {
+          const stamp = crypto.randomUUID().slice(0, 8).toUpperCase();
+          const { error } = await supabase.rpc('receive_payment', { target_invoice_id: payableInvoice.invoice.id, payment_amount: payload.amount, method: payload.payment_method, bank_name: null, payment_reference: null, slip_path: null, payment_notes: category, payment_number: `PAY-${stamp}`, receipt_number: `REC-${stamp}`, request_key: crypto.randomUUID() });
+          requestError = error;
+        }
+      }
     } else if (editing) {
       const { error } = await supabase.from(config.table).update(payload).eq('id', String(editing.id));
       requestError = error;
@@ -541,7 +576,7 @@ function RecordDialog({ open, onOpenChange, module, config, options, editing, de
               {field.type === 'select' ? (
                 <select id={`${module}-${field.name}`} className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" {...register(field.name)}>
                   <option value="">—</option>
-                  {field.options?.map((value) => <option key={value} value={value}>{t(`status.${value}` as TranslationKey) || value}</option>)}
+                  {field.options?.map((value) => <option key={value} value={value}>{t(`${field.name === 'payment_category' ? 'room' : 'status'}.${value}` as TranslationKey) || value}</option>)}
                   {field.optionSource && options[field.optionSource]?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
               ) : (
