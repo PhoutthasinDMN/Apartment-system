@@ -5,14 +5,15 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useSyncExte
 interface ThemeValue { dark: boolean; toggleTheme: () => void; }
 const ThemeContext = createContext<ThemeValue | null>(null);
 const themeListeners = new Set<() => void>();
+const themeStorageKey = 'apartment-theme-v2';
 
 function getThemeSnapshot() {
-  return window.localStorage.getItem('apartment-theme') === 'dark';
+  return window.localStorage.getItem(themeStorageKey) === 'dark';
 }
 
 function subscribeToTheme(listener: () => void) {
   const handleStorage = (event: StorageEvent) => {
-    if (event.key === 'apartment-theme') listener();
+    if (event.key === themeStorageKey) listener();
   };
   themeListeners.add(listener);
   window.addEventListener('storage', handleStorage);
@@ -30,7 +31,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [dark]);
 
   const toggleTheme = useCallback(() => {
-    window.localStorage.setItem('apartment-theme', dark ? 'light' : 'dark');
+    window.localStorage.setItem(themeStorageKey, dark ? 'light' : 'dark');
     themeListeners.forEach((listener) => listener());
   }, [dark]);
 
